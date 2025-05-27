@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ImageGuess</title>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data:;">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #1a1a1a;
+            color: white;
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+        }
+
+        #container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #image-container {
+            position: relative;
+            max-width: 100vw;
+            max-height: 100vh;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        #main-image {
+            max-width: 100%;
+            max-height: 100%;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+            display: block;
+        }
+
+        #button-grid {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            display: grid;
+            z-index: 10;
+            gap: 0;
+            pointer-events: none;
+        }
+
+        .overlay-button {
+            background-color: white;
+            border: none;
+            color: black;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            opacity: 1;
+            box-sizing: border-box;
+            pointer-events: auto;
+        }
+
+        .overlay-button:hover {
+            background-color: #e0e0e0;
+        }
+
+        .button-spacer {
+            pointer-events: none;
+            background: transparent;
+        }
+
+        #welcome-message {
+            text-align: center;
+            font-size: 24px;
+        }
+
+        #button-count-dialog {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #2a2a2a;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            display: none;
+            z-index: 1001;
+        }
+
+        #button-count-dialog input {
+            width: 100px;
+            padding: 5px;
+            margin: 10px 0;
+        }
+
+        #button-count-dialog button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        #button-count-dialog button:hover {
+            background-color: #45a049;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            display: inline-block;
+            margin: 20px 0;
+        }
+
+        .file-input {
+            position: absolute;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        .file-input-button {
+            padding: 15px 30px;
+            font-size: 16px;
+            background-color: #007AFF;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            display: inline-block;
+        }
+
+        .file-input-button:hover {
+            background-color: #0056CC;
+        }
+
+        #status-bar {
+            position: fixed;
+            bottom: 10px;
+            left: 10px;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 14px;
+            display: none;
+            z-index: 1000;
+            pointer-events: none;
+        }
+
+        #controls {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            display: none;
+            z-index: 1000;
+        }
+
+        #controls button {
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            margin-left: 5px;
+        }
+
+        #controls button:hover {
+            background-color: rgba(0, 0, 0, 0.9);
+        }
+
+        #image-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: black;
+            z-index: 999;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div id="welcome-message">
+            <h1>ImageGuess</h1>
+            <p>Select a folder containing images to begin</p>
+            <div class="file-input-wrapper">
+                <input type="file" id="folderInput" class="file-input" webkitdirectory multiple>
+                <div class="file-input-button">Select Image Folder</div>
+            </div>
+        </div>
+        <div id="image-container" style="display: none;">
+            <img id="main-image" src="" alt="Main image">
+        </div>
+    </div>
+
+    <div id="image-overlay"></div>
+
+    <div id="button-count-dialog">
+        <h3>How many buttons to cover the image?</h3>
+        <div style="margin: 10px 0;">
+            <button onclick="setButtonCount(4)" style="margin: 5px; padding: 8px 12px; background-color: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer;">4 (2×2)</button>
+            <button onclick="setButtonCount(9)" style="margin: 5px; padding: 8px 12px; background-color: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer;">9 (3×3)</button>
+            <button onclick="setButtonCount(16)" style="margin: 5px; padding: 8px 12px; background-color: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer;">16 (4×4)</button>
+            <button onclick="setButtonCount(25)" style="margin: 5px; padding: 8px 12px; background-color: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer;">25 (5×5)</button>
+        </div>
+        <div style="margin: 10px 0;">
+            <input type="number" id="button-count" min="1" value="16" onchange="validateButtonCount()">
+            <div id="validation-message" style="color: red; font-size: 12px; margin-top: 5px;"></div>
+        </div>
+        <button onclick="createButtons()">Start</button>
+    </div>
+
+    <div id="status-bar"></div>
+
+    <div id="controls">
+        <button id="reveal-button">Reveal</button>
+        <button id="fullscreen-button">Fullscreen</button>
+    </div>
+
+    <script>
+        console.log('Renderer loaded');
+        let currentImagePath = '';
+        let buttonCount = 4;
+
+        // Handle native folder selection
+        document.getElementById('folderInput').addEventListener('change', async (event) => {
+            const files = Array.from(event.target.files);
+            console.log('Files selected:', files.length);
+            
+            if (files.length === 0) {
+                return;
+            }
+            
+            // Filter image files locally
+            const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp'];
+            const imageFiles = files.filter(file => {
+                const ext = file.name.split('.').pop().toLowerCase();
+                return imageExtensions.includes('.' + ext);
+            });
+            
+            console.log('Image files found:', imageFiles.length);
+            
+            if (imageFiles.length === 0) {
+                alert('No image files found in the selected folder');
+                return;
+            }
+            
+            // Get folder name
+            const folderName = files[0].webkitRelativePath ? 
+                files[0].webkitRelativePath.split('/')[0] : 
+                'Selected Folder';
+            
+            // Store files globally for navigation
+            window.currentImageFiles = imageFiles;
+            window.currentImageIndex = 0;
+            
+            // Create blob URL for first image
+            const firstImageUrl = URL.createObjectURL(imageFiles[0]);
+            
+            // Update UI directly
+            document.getElementById('welcome-message').style.display = 'none';
+            document.getElementById('image-container').style.display = 'flex';
+            document.getElementById('status-bar').style.display = 'block';
+            document.getElementById('controls').style.display = 'block';
+            
+            currentImagePath = firstImageUrl;
+            document.getElementById('main-image').src = firstImageUrl;
+            
+            // Wait for image to load before showing dialog
+            document.getElementById('main-image').onload = () => {
+                // Only show dialog for the first image, not during navigation
+                if (window.currentImageIndex === 0) {
+                    document.getElementById('button-count-dialog').style.display = 'block';
+                    document.getElementById('image-overlay').style.display = 'block';
+                }
+            };
+            
+            document.title = `ImageGuess - ${folderName}`;
+            
+            updateStatusBar(1, imageFiles.length);
+            
+            try {
+                // Just notify main process that folder was selected
+                await window.electronAPI.invoke('folder-selected-notification', {
+                    folderName: folderName,
+                    imageCount: imageFiles.length
+                });
+            } catch (error) {
+                console.error('Error notifying main process:', error);
+            }
+        });
+
+        // Handle trigger from menu
+        window.electronAPI.onTriggerFolderSelection(() => {
+            document.getElementById('folderInput').click();
+        });
+
+        // Handle navigation events from main process
+        window.electronAPI.onNextImage(() => {
+            nextImageLocal();
+        });
+
+        window.electronAPI.onPreviousImage(() => {
+            previousImageLocal();
+        });
+
+        window.electronAPI.onRevealImage(() => {
+            clearButtons();
+        });
+
+        window.electronAPI.onCloseFolder(() => {
+            document.getElementById('welcome-message').style.display = 'block';
+            document.getElementById('image-container').style.display = 'none';
+            document.getElementById('button-count-dialog').style.display = 'none';
+            document.getElementById('status-bar').style.display = 'none';
+            document.getElementById('controls').style.display = 'none';
+            document.title = 'ImageGuess';
+            clearButtons();
+            window.currentImageFiles = null;
+            window.currentImageIndex = 0;
+            if (window.currentImagePath && window.currentImagePath.startsWith('blob:')) {
+                URL.revokeObjectURL(window.currentImagePath);
+            }
+        });
+
+        function updateStatusBar(current, total) {
+            document.getElementById('status-bar').textContent = `Image ${current} of ${total}`;
+        }
+
+        // Add error handler for image loading
+        document.getElementById('main-image').addEventListener('error', function(error) {
+            console.error('Error loading image:', error);
+        });
+
+        document.getElementById('main-image').addEventListener('load', () => {
+            console.log('Image loaded:', document.getElementById('main-image').src);
+            if (document.getElementById('button-count-dialog').style.display === 'none') {
+                createButtons();
+            }
+        });
+
+        // Handle keyboard shortcuts with proper long press handling
+        let keyActionTaken = {};
+        document.addEventListener('keydown', (event) => {
+            // Prevent action if already taken for this key press or dialog is open
+            if (keyActionTaken[event.code] || document.getElementById('button-count-dialog').style.display === 'block') {
+                event.preventDefault();
+                return;
+            }
+            
+            // Mark that action has been taken for this key
+            keyActionTaken[event.code] = true;
+            
+            switch(event.code) {
+                case 'ArrowRight':
+                    event.preventDefault();
+                    nextImageLocal();
+                    break;
+                case 'ArrowLeft':
+                    event.preventDefault();
+                    previousImageLocal();
+                    break;
+                case 'Space':
+                    event.preventDefault();
+                    clearButtons();
+                    break;
+            }
+        });
+
+        document.addEventListener('keyup', (event) => {
+            // Reset action state when key is released - allows new action on next press
+            keyActionTaken[event.code] = false;
+        });
+
+        function nextImageLocal() {
+            if (!window.currentImageFiles || window.currentImageFiles.length === 0) {
+                console.log('No images available for navigation');
+                return;
+            }
+            
+            console.log(`Current index: ${window.currentImageIndex}, Total images: ${window.currentImageFiles.length}`);
+            
+            // Don't cycle - stop at the last image
+            if (window.currentImageIndex < window.currentImageFiles.length - 1) {
+                window.currentImageIndex++;
+                loadCurrentImage();
+            } else {
+                console.log('Already at last image');
+            }
+        }
+
+        function previousImageLocal() {
+            if (!window.currentImageFiles || window.currentImageFiles.length === 0) {
+                console.log('No images available for navigation');
+                return;
+            }
+            
+            console.log(`Current index: ${window.currentImageIndex}, Total images: ${window.currentImageFiles.length}`);
+            
+            // Don't cycle - stop at the first image
+            if (window.currentImageIndex > 0) {
+                window.currentImageIndex--;
+                loadCurrentImage();
+            } else {
+                console.log('Already at first image');
+            }
+        }
+
+        function loadCurrentImage() {
+            if (!window.currentImageFiles || window.currentImageFiles.length === 0) {
+                console.log('No images to load');
+                return;
+            }
+            
+            const currentImage = window.currentImageFiles[window.currentImageIndex];
+            console.log(`Loading image ${window.currentImageIndex + 1} of ${window.currentImageFiles.length}`);
+            
+            // Revoke previous blob URL to prevent memory leaks
+            if (currentImagePath && currentImagePath.startsWith('blob:')) {
+                URL.revokeObjectURL(currentImagePath);
+            }
+            
+            currentImagePath = URL.createObjectURL(currentImage);
+            document.getElementById('main-image').src = currentImagePath;
+            updateStatusBar(window.currentImageIndex + 1, window.currentImageFiles.length);
+            
+            // Wait for image to load before creating buttons
+            document.getElementById('main-image').onload = () => {
+                // Don't show dialog during navigation, just create buttons
+                createButtons();
+            };
+        }
+
+        function createButtons() {
+            // Validate button count first
+            if (!validateButtonCount()) {
+                return;
+            }
+            
+            buttonCount = parseInt(document.getElementById('button-count').value);
+            if (buttonCount < 1) buttonCount = 1;
+            
+            clearButtons();
+            
+            // Hide the overlay when creating buttons
+            document.getElementById('image-overlay').style.display = 'none';
+            
+            // Calculate grid dimensions
+            const cols = Math.ceil(Math.sqrt(buttonCount));
+            const rows = Math.ceil(buttonCount / cols);
+            
+            console.log(`Creating ${buttonCount} buttons in responsive CSS grid: ${cols} cols x ${rows} rows`);
+            
+            // Create grid container that fills the entire viewport
+            const grid = document.createElement('div');
+            grid.id = 'button-grid';
+            grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+            grid.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+            
+            // Calculate font size based on viewport dimensions
+            const viewportWidth = window.innerWidth;
+            const viewportHeight = window.innerHeight;
+            const cellWidth = viewportWidth / cols;
+            const cellHeight = viewportHeight / rows;
+            const fontSize = Math.min(cellWidth, cellHeight) * 0.15;
+            
+            // Create buttons and spacers to fill the grid
+            const totalCells = cols * rows;
+            
+            for (let i = 0; i < totalCells; i++) {
+                if (i < buttonCount) {
+                    // Create actual button
+                    const button = document.createElement('div');
+                    button.className = 'overlay-button';
+                    button.style.fontSize = `${fontSize}px`;
+                    button.textContent = (i + 1).toString();
+
+                    button.addEventListener('click', () => {
+                        // Use opacity instead of display to maintain grid structure
+                        button.style.opacity = '0';
+                        button.style.pointerEvents = 'none';
+                    });
+
+                    grid.appendChild(button);
+                } else {
+                    // Create transparent spacer for empty grid cells
+                    const spacer = document.createElement('div');
+                    spacer.className = 'button-spacer';
+                    grid.appendChild(spacer);
+                }
+            }
+
+            document.body.appendChild(grid);
+            document.getElementById('button-count-dialog').style.display = 'none';
+        }
+
+        function clearButtons() {
+            const grid = document.getElementById('button-grid');
+            if (grid) {
+                grid.remove();
+            }
+        }
+
+        function setButtonCount(count) {
+            document.getElementById('button-count').value = count;
+            if (validateButtonCount()) {
+                createButtons();
+            }
+        }
+
+        function validateButtonCount() {
+            const count = parseInt(document.getElementById('button-count').value);
+            const validationMessage = document.getElementById('validation-message');
+            
+            if (isNaN(count) || count < 1) {
+                validationMessage.textContent = 'Please enter a positive number';
+                validationMessage.style.color = 'red';
+                return false;
+            }
+            
+            if (count > 100) {
+                validationMessage.textContent = 'Maximum 100 buttons allowed';
+                validationMessage.style.color = 'red';
+                return false;
+            }
+            
+            const sqrt = Math.sqrt(count);
+            if (sqrt % 1 !== 0) {
+                const nearestLower = Math.floor(sqrt) ** 2;
+                const nearestHigher = Math.ceil(sqrt) ** 2;
+                validationMessage.textContent = `Please enter a perfect square (try ${nearestLower} or ${nearestHigher})`;
+                validationMessage.style.color = 'red';
+                return false;
+            }
+            
+            validationMessage.textContent = `Perfect! ${sqrt}×${sqrt} grid`;
+            validationMessage.style.color = 'green';
+            return true;
+        }
+
+        document.getElementById('reveal-button').addEventListener('click', () => {
+            clearButtons();
+        });
+
+        document.getElementById('fullscreen-button').addEventListener('click', () => {
+            if (document.fullscreenElement) {
+                document.exitFullscreen();
+            } else {
+                document.documentElement.requestFullscreen();
+            }
+        });
+
+        // Update fullscreen button text based on fullscreen state
+        document.addEventListener('fullscreenchange', () => {
+            const fullscreenButton = document.getElementById('fullscreen-button');
+            if (document.fullscreenElement) {
+                fullscreenButton.textContent = 'Exit Fullscreen';
+            } else {
+                fullscreenButton.textContent = 'Fullscreen';
+            }
+        });
+    </script>
+</body>
+</html> 

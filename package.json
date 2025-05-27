@@ -1,0 +1,35 @@
+{
+  "name": "imageguess",
+  "version": "1.0.0",
+  "description": "An image guessing game with overlay buttons",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder"
+  },
+  "keywords": [
+    "electron",
+    "game",
+    "image"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^28.0.0"
+  },
+  "build": {
+    "appId": "com.test.folderdialog",
+    "mac": {
+      "entitlements": "entitlements.mac.plist",
+      "entitlementsInherit": "entitlements.mac.plist",
+      "hardenedRuntime": true,
+      "icon": "icons/macos/icon.icns"
+    },
+    "win": {
+      "icon": "icons/windows/icon.ico"
+    },
+    "linux": {
+      "icon": "icons/windows/256.png"
+    }
+  }
+}
