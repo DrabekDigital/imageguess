@@ -16,7 +16,7 @@ function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
-    icon: path.join(__dirname, process.platform === 'darwin' ? 'icons/macos/icon.icns' : 'icons/windows/icon.ico'),
+    icon: path.join(__dirname, '../../icons', process.platform === 'darwin' ? 'macos/icon.icns' : 'windows/icon.ico'),
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
@@ -57,7 +57,7 @@ function createWindow() {
     });
   }
 
-  mainWindow.loadFile('index.html');
+  mainWindow.loadFile(path.join(__dirname, '../../index.html'));
 
   // Create menu
   const template = [
