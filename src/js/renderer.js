@@ -5,7 +5,16 @@ let buttonCount = 4;
 // Initialize the application
 document.addEventListener('DOMContentLoaded', () => {
     initializeEventListeners();
+    translatePage();
 });
+
+function translatePage() {
+    // Translate all elements with data-translate attribute
+    document.querySelectorAll('[data-translate]').forEach(element => {
+        const key = element.getAttribute('data-translate');
+        element.textContent = getTranslation(key);
+    });
+}
 
 function initializeEventListeners() {
     // Handle native folder selection
@@ -77,7 +86,7 @@ async function handleFolderSelection(event) {
     console.log('Image files found:', imageFiles.length);
     
     if (imageFiles.length === 0) {
-        alert('No image files found in the selected folder');
+        alert(getTranslation('noImagesFound'));
         return;
     }
     
@@ -143,7 +152,7 @@ function handleCloseFolder() {
 }
 
 function updateStatusBar(current, total) {
-    document.getElementById('status-bar').textContent = `Image ${current} of ${total}`;
+    document.getElementById('status-bar').textContent = getTranslation('imageCount', { current, total });
 }
 
 function setupKeyboardShortcuts() {
@@ -186,7 +195,7 @@ function setupKeyboardShortcuts() {
 
 function nextImageLocal() {
     if (!window.currentImageFiles || window.currentImageFiles.length === 0) {
-        console.log('No images available for navigation');
+        console.log(getTranslation('noImagesAvailable'));
         return;
     }
     
@@ -194,14 +203,13 @@ function nextImageLocal() {
         window.currentImageIndex++;
         loadCurrentImage();
     } else {
-        console.log('Already at last image');
+        console.log(getTranslation('alreadyAtLast'));
     }
-
 }
 
 function previousImageLocal() {
     if (!window.currentImageFiles || window.currentImageFiles.length === 0) {
-        console.log('No images available for navigation');
+        console.log(getTranslation('noImagesAvailable'));
         return;
     }
     
@@ -209,7 +217,7 @@ function previousImageLocal() {
         window.currentImageIndex--;
         loadCurrentImage();
     } else {
-        console.log('Already at first image');
+        console.log(getTranslation('alreadyAtFirst'));
     }
 }
 
@@ -304,13 +312,13 @@ function validateButtonCount() {
     const validationMessage = document.getElementById('validation-message');
     
     if (isNaN(count) || count < 1) {
-        validationMessage.textContent = 'Please enter a positive number';
+        validationMessage.textContent = getTranslation('enterPositiveNumber');
         validationMessage.style.color = 'red';
         return false;
     }
     
     if (count > 100) {
-        validationMessage.textContent = 'Maximum 100 buttons allowed';
+        validationMessage.textContent = getTranslation('maxButtonsAllowed');
         validationMessage.style.color = 'red';
         return false;
     }
@@ -319,12 +327,15 @@ function validateButtonCount() {
     if (sqrt % 1 !== 0) {
         const nearestLower = Math.floor(sqrt) ** 2;
         const nearestHigher = Math.ceil(sqrt) ** 2;
-        validationMessage.textContent = `Please enter a perfect square (try ${nearestLower} or ${nearestHigher})`;
+        validationMessage.textContent = getTranslation('enterPerfectSquare', {
+            lower: nearestLower,
+            higher: nearestHigher
+        });
         validationMessage.style.color = 'red';
         return false;
     }
     
-    validationMessage.textContent = `Perfect! ${sqrt}×${sqrt} grid`;
+    validationMessage.textContent = getTranslation('perfectGrid', { size: sqrt });
     validationMessage.style.color = 'green';
     return true;
 }
@@ -338,10 +349,10 @@ function toggleFullscreen() {
 }
 
 function updateFullscreenButtonText() {
-    const fullscreenButton = document.getElementById('fullscreen-button');
+    const button = document.getElementById('fullscreen-button');
     if (document.fullscreenElement) {
-        fullscreenButton.textContent = 'Exit Fullscreen';
+        button.textContent = getTranslation('exitFullscreen');
     } else {
-        fullscreenButton.textContent = 'Fullscreen';
+        button.textContent = getTranslation('fullscreen');
     }
 } 

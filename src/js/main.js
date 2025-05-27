@@ -1,8 +1,13 @@
-const { app, BrowserWindow, ipcMain, Menu } = require('electron');
+const { app, BrowserWindow, ipcMain, Menu, dialog } = require('electron');
 const path = require('path');
+const { translations, getPreferredLanguage } = require('./translations.js');
+const packageJson = require('../../package.json');
 
 // Check if we're in production
 const isProduction = process.env.NODE_ENV === 'production';
+
+// Get version from package.json
+const APP_VERSION = packageJson.version;
 
 let mainWindow;
 let currentFolderPath = '';
@@ -59,21 +64,41 @@ function createWindow() {
 
   mainWindow.loadFile(path.join(__dirname, '../../index.html'));
 
+  // Get current language
+  const lang = getPreferredLanguage();
+  const t = translations[lang];
+
   // Create menu
   const template = [
     {
-      label: 'File',
+      label: t.menuAbout,
       submenu: [
         {
-          label: 'Open Folder',
+          label: t.menuAbout,
+          click: () => {
+            dialog.showMessageBox(mainWindow, {
+              title: t.menuAbout,
+              message: 'ImageGuess',
+              detail: `${t.aboutVersion.replace('{version}', APP_VERSION)}\n${t.aboutCopyright}`,
+              buttons: ['OK'],
+              icon: path.join(__dirname, '../../icons', process.platform === 'darwin' ? 'macos/icon.icns' : 'windows/icon.ico')
+            });
+          }
+        }
+      ]
+    },
+    {
+      label: t.menuFile,
+      submenu: [
+        {
+          label: t.menuOpen,
           accelerator: 'CmdOrCtrl+O',
           click: () => {
-            // Trigger the native folder selection in the renderer
             mainWindow.webContents.send('trigger-folder-selection');
           }
         },
         {
-          label: 'Close Folder',
+          label: t.menuClose,
           accelerator: 'CmdOrCtrl+W',
           click: () => {
             closeFolder();
@@ -81,7 +106,7 @@ function createWindow() {
         },
         { type: 'separator' },
         {
-          label: 'Quit',
+          label: t.menuQuit,
           accelerator: process.platform === 'darwin' ? 'Cmd+Q' : 'Ctrl+Q',
           click: () => {
             app.quit();
@@ -90,24 +115,24 @@ function createWindow() {
       ]
     },
     {
-      label: 'View',
+      label: t.menuView,
       submenu: [
         {
-          label: 'Next Image',
+          label: t.menuNext,
           accelerator: 'Right',
           click: () => {
             nextImage();
           }
         },
         {
-          label: 'Previous Image',
+          label: t.menuPrevious,
           accelerator: 'Left',
           click: () => {
             previousImage();
           }
         },
         {
-          label: 'Reveal Image',
+          label: t.menuReveal,
           accelerator: 'Space',
           click: () => {
             revealImage();
@@ -115,14 +140,14 @@ function createWindow() {
         },
         { type: 'separator' },
         ...(isProduction ? [] : [{
-          label: 'Toggle Developer Tools',
+          label: t.menuDevTools,
           accelerator: 'CmdOrCtrl+Shift+I',
           click: () => {
             mainWindow.webContents.toggleDevTools();
           }
         }]),
         {
-          label: 'Reload',
+          label: t.menuReload,
           accelerator: 'CmdOrCtrl+R',
           click: () => {
             mainWindow.reload();

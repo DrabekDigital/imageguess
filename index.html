@@ -9,10 +9,10 @@
     <div id="container">
         <div id="welcome-message">
             <h1>ImageGuess</h1>
-            <p>Select a folder containing images to begin</p>
+            <p data-translate="selectFolder">Select a folder containing images to begin</p>
             <div class="file-input-wrapper">
                 <input type="file" id="folderInput" class="file-input" webkitdirectory multiple>
-                <div class="file-input-button">Select Image Folder</div>
+                <div class="file-input-button" data-translate="selectFolder">Select Image Folder</div>
             </div>
         </div>
         <div id="image-container" style="display: none;">
@@ -23,7 +23,7 @@
     <div id="image-overlay"></div>
 
     <div id="button-count-dialog">
-        <h3>How many buttons to cover the image?</h3>
+        <h3 data-translate="buttonCount">How many buttons to cover the image?</h3>
         <div style="margin: 10px 0;">
             <button class="grid-size-button" data-size="4">4 (2×2)</button>
             <button class="grid-size-button" data-size="9">9 (3×3)</button>
@@ -34,16 +34,17 @@
             <input type="number" id="button-count" min="1" value="16">
             <div id="validation-message" style="color: red; font-size: 12px; margin-top: 5px;"></div>
         </div>
-        <button id="start-button">Start</button>
+        <button id="start-button" data-translate="start">Start</button>
     </div>
 
     <div id="status-bar"></div>
 
     <div id="controls">
-        <button id="reveal-button">Reveal</button>
-        <button id="fullscreen-button">Fullscreen</button>
+        <button id="reveal-button" data-translate="reveal">Reveal</button>
+        <button id="fullscreen-button" data-translate="fullscreen">Fullscreen</button>
     </div>
 
+    <script src="src/js/translations.js"></script>
     <script src="src/js/renderer.js"></script>
 </body>
 </html> 
