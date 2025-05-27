@@ -4,7 +4,7 @@ const { translations, getPreferredLanguage } = require('./translations.js');
 const packageJson = require('../../package.json');
 
 // Check if we're in production
-const isProduction = process.env.NODE_ENV === 'production';
+const isProduction = app.isPackaged || process.env.NODE_ENV === 'production';
 
 // Get version from package.json
 const APP_VERSION = packageJson.version;
