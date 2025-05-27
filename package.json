@@ -5,7 +5,8 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "build": "electron-builder"
+    "build": "electron-builder",
+    "start:prod": "NODE_ENV=production electron ."
   },
   "keywords": [
     "electron",
@@ -15,10 +16,10 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "electron": "^28.0.0"
+    "electron": "^36.0.0"
   },
   "build": {
-    "appId": "com.test.folderdialog",
+    "appId": "digital.drabek.imageguess",
     "mac": {
       "entitlements": "entitlements.mac.plist",
       "entitlementsInherit": "entitlements.mac.plist",

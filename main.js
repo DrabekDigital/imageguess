@@ -1,8 +1,16 @@
 const { app, BrowserWindow, ipcMain, Menu } = require('electron');
 const path = require('path');
 
+// Check if we're in production
+const isProduction = process.env.NODE_ENV === 'production';
+
 let mainWindow;
 let currentFolderPath = '';
+
+// Add path sanitization function
+function sanitizePath(inputPath) {
+  return path.normalize(inputPath).replace(/^(\.\.(\/|\\|$))+/, '');
+}
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -13,9 +21,41 @@ function createWindow() {
       nodeIntegration: false,
       contextIsolation: true,
       enableRemoteModule: false,
-      preload: path.join(__dirname, 'preload.js')
+      preload: path.join(__dirname, 'preload.js'),
+      webSecurity: true,
+      allowRunningInsecureContent: false,
+      sandbox: true
     }
   });
+
+  // Set additional security headers
+  mainWindow.webContents.session.webRequest.onHeadersReceived((details, callback) => {
+    callback({
+      responseHeaders: {
+        ...details.responseHeaders,
+        'Content-Security-Policy': ["default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data:; connect-src 'self';"],
+        'X-Content-Type-Options': ['nosniff'],
+        'X-Frame-Options': ['DENY'],
+        'X-XSS-Protection': ['1; mode=block']
+      }
+    });
+  });
+
+  // Disable developer tools in production
+  if (isProduction) {
+    mainWindow.webContents.on('before-input-event', (event, input) => {
+      if (input.control && input.shift && input.key.toLowerCase() === 'i') {
+        event.preventDefault();
+      }
+    });
+    
+    // Prevent opening dev tools through menu
+    mainWindow.webContents.on('before-input-event', (event, input) => {
+      if (input.control && input.shift && input.key.toLowerCase() === 'c') {
+        event.preventDefault();
+      }
+    });
+  }
 
   mainWindow.loadFile('index.html');
 
@@ -74,13 +114,13 @@ function createWindow() {
           }
         },
         { type: 'separator' },
-        {
+        ...(isProduction ? [] : [{
           label: 'Toggle Developer Tools',
           accelerator: 'CmdOrCtrl+Shift+I',
           click: () => {
             mainWindow.webContents.toggleDevTools();
           }
-        },
+        }]),
         {
           label: 'Reload',
           accelerator: 'CmdOrCtrl+R',
@@ -108,10 +148,13 @@ app.on('activate', () => {
   }
 });
 
-// Handle folder selection notification
+// Update the folder selection handler
 ipcMain.handle('folder-selected-notification', async (event, data) => {
-  console.log('Folder selected notification:', data);
-  currentFolderPath = data.folderName;
+  if (!data || typeof data.folderName !== 'string') {
+    throw new Error('Invalid folder data');
+  }
+  const sanitizedPath = sanitizePath(data.folderName);
+  currentFolderPath = sanitizedPath;
   return { success: true };
 });
 
