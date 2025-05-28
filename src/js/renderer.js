@@ -49,6 +49,13 @@ function initializeEventListeners() {
     // Handle control buttons
     document.getElementById('reveal-button').addEventListener('click', clearButtons);
     document.getElementById('fullscreen-button').addEventListener('click', toggleFullscreen);
+    document.getElementById('close-button').addEventListener('click', () => {
+        handleCloseFolder();
+    });
+
+    // Handle navigation buttons
+    document.getElementById('prev-button').addEventListener('click', previousImageLocal);
+    document.getElementById('next-button').addEventListener('click', nextImageLocal);
 
     // Handle grid size buttons
     document.querySelectorAll('.grid-size-button').forEach(button => {
@@ -118,8 +125,9 @@ async function handleFolderSelection(event) {
 function updateUIForNewFolder(firstImageUrl, folderName, totalImages) {
     document.getElementById('welcome-message').style.display = 'none';
     document.getElementById('image-container').style.display = 'flex';
-    document.getElementById('status-bar').style.display = 'block';
+    document.getElementById('status-bar').style.display = 'none';
     document.getElementById('controls').style.display = 'block';
+    document.getElementById('navigation-controls').style.display = 'flex';
     
     currentImagePath = firstImageUrl;
     document.getElementById('main-image').src = firstImageUrl;
@@ -142,6 +150,7 @@ function handleCloseFolder() {
     document.getElementById('button-count-dialog').style.display = 'none';
     document.getElementById('status-bar').style.display = 'none';
     document.getElementById('controls').style.display = 'none';
+    document.getElementById('navigation-controls').style.display = 'none';
     document.title = 'ImageGuess';
     clearButtons();
     window.currentImageFiles = null;
@@ -149,10 +158,15 @@ function handleCloseFolder() {
     if (window.currentImagePath && window.currentImagePath.startsWith('blob:')) {
         URL.revokeObjectURL(window.currentImagePath);
     }
+    // Reset the file input so it can be used again
+    document.getElementById('folderInput').value = '';
 }
 
 function updateStatusBar(current, total) {
-    document.getElementById('status-bar').textContent = getTranslation('imageCount', { current, total });
+    const statusBar = document.getElementById('status-bar');
+    statusBar.textContent = getTranslation('imageCount', { current, total });
+    // Show status bar when updating
+    statusBar.style.display = 'block';
 }
 
 function setupKeyboardShortcuts() {

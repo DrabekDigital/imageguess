@@ -29,7 +29,9 @@ const translations = {
         menuReload: 'Reload',
         menuAbout: 'About ImageGuess',
         aboutVersion: 'Version {version}',
-        aboutCopyright: '© 2025 ImageGuess'
+        aboutCopyright: '© 2025 ImageGuess',
+        open: 'Open',
+        close: 'Close'
     },
     cs: {
         welcome: 'Vítejte v ImageGuess',
@@ -60,7 +62,9 @@ const translations = {
         menuReload: 'Obnovit',
         menuAbout: 'O aplikaci ImageGuess',
         aboutVersion: 'Verze {version}',
-        aboutCopyright: '© 2025 ImageGuess'
+        aboutCopyright: '© 2025 ImageGuess',
+        open: 'Otevřít',
+        close: 'Zavřít'
     },
     sk: {
         welcome: 'Vitajte v ImageGuess',
@@ -91,7 +95,9 @@ const translations = {
         menuReload: 'Obnoviť',
         menuAbout: 'O aplikácii ImageGuess',
         aboutVersion: 'Verzia {version}',
-        aboutCopyright: '© 2025 ImageGuess'
+        aboutCopyright: '© 2025 ImageGuess',
+        open: 'Otvoriť',
+        close: 'Zavrieť'
     }
 };
 
