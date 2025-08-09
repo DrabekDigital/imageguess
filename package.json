@@ -16,6 +16,9 @@
     "build:mac": "NODE_ENV=production electron-builder --mac",
     "build:win": "NODE_ENV=production electron-builder --win",
     "build:linux": "NODE_ENV=production electron-builder --linux",
+    "build:dev": "NODE_ENV=development electron-builder",
+    "build:dev:win": "NODE_ENV=development electron-builder --win",
+    "build:dev:linux": "NODE_ENV=development electron-builder --linux",
     "clean": "rm -rf dist",
     "eslint": "eslint src/**/*.js"
   },
@@ -28,6 +31,7 @@
   "devDependencies": {
     "electron": "^36.0.0",
     "electron-builder": "^24.9.1",
+    "electron-builder-sandbox-fix": "^1.1.0",
     "eslint": "^8.56.0"
   },
   "build": {
@@ -42,6 +46,7 @@
     "compression": "maximum",
     "removePackageScripts": true,
     "removePackageKeywords": true,
+    "afterPack": "electron-builder-sandbox-fix",
     "mac": {
       "entitlements": "entitlements.mac.plist",
       "entitlementsInherit": "entitlements.mac.plist",
@@ -50,7 +55,9 @@
       "target": [
         {
           "target": "dmg",
-          "arch": ["arm64"]
+          "arch": [
+            "arm64"
+          ]
         }
       ]
     },
@@ -59,17 +66,27 @@
       "target": [
         {
           "target": "portable",
-          "arch": ["arm64", "x64"]
+          "arch": [
+            "arm64",
+            "x64"
+          ]
         }
       ]
     },
     "linux": {
       "icon": "icons/windows/256.png",
       "maintainer": "Jan Drabek <notify@drabek.digital>",
+      "category": "Game",
+      "desktop": {
+        "MimeType": "x-scheme-handler/imageguess"
+      },
       "target": [
         {
-          "target": "deb",
-          "arch": ["arm64", "x64"]
+          "target": "AppImage",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
         }
       ]
     }

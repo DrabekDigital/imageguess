@@ -22,6 +22,7 @@ function createWindow() {
     width: 1200,
     height: 800,
     icon: path.join(__dirname, '../../icons', process.platform === 'darwin' ? 'macos/icon.icns' : 'windows/icon.ico'),
+    autoHideMenuBar: process.platform !== 'darwin', // Hide menubar on Windows and Linux
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
