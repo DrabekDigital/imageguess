@@ -3,35 +3,45 @@ const globals = require('globals');
 
 module.exports = [
   {
-    ignores: ['dist/**', 'node_modules/**']
+    ignores: ['dist/', '.history/']
   },
   js.configs.recommended,
   {
-    files: ['src/js/main.js', 'src/js/preload.js', 'eslint.config.js'],
+    // Electron main process and preload scripts
+    files: ['eslint.config.js', 'src/js/main.js', '**/preload.js'],
     languageOptions: {
       sourceType: 'commonjs',
-      globals: globals.node
+      globals: {
+        ...globals.node
+      }
     }
   },
   {
-    // Loaded both by the main process (require) and the renderer (<script>)
-    files: ['src/js/translations.js'],
+    // Renderer scripts loaded via <script> tags in index.html (shared global scope)
+    files: ['src/js/renderer.js', 'src/js/translations.js'],
     languageOptions: {
       sourceType: 'script',
       globals: {
-        ...globals.browser,
-        ...globals.node
+        ...globals.browser
       }
     }
   },
   {
     files: ['src/js/renderer.js'],
     languageOptions: {
-      sourceType: 'script',
       globals: {
-        ...globals.browser,
-        // Provided by translations.js via a classic <script> tag
+        // defined by translations.js, which index.html loads first
         getTranslation: 'readonly'
+      }
+    }
+  },
+  {
+    // translations.js is also required from the main process
+    files: ['src/js/translations.js'],
+    languageOptions: {
+      globals: {
+        ...globals.commonjs,
+        process: 'readonly'
       }
     }
   }
