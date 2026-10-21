@@ -169,40 +169,28 @@ function updateStatusBar(current, total) {
 }
 
 function setupKeyboardShortcuts() {
-    let keyActionTaken = {};
-    
+    // Single source of keyboard navigation on all platforms; the macOS menu only displays these keys
     document.addEventListener('keydown', (event) => {
         // Prevent action if dialog is open
         if (document.getElementById('button-count-dialog').style.display === 'block') {
             return;
         }
 
-        // Prevent action if already taken for this key press
-        if (keyActionTaken[event.code]) {
-            event.preventDefault();
+        const actions = {
+            ArrowRight: nextImageLocal,
+            ArrowLeft: previousImageLocal,
+            Space: clearButtons
+        };
+        const action = actions[event.code];
+        if (!action || event.altKey || event.ctrlKey || event.metaKey) {
             return;
         }
-        
-        keyActionTaken[event.code] = true;
-        
-        switch(event.code) {
-            case 'ArrowRight':
-                event.preventDefault();
-                nextImageLocal();
-                break;
-            case 'ArrowLeft':
-                event.preventDefault();
-                previousImageLocal();
-                break;
-            case 'Space':
-                event.preventDefault();
-                clearButtons();
-                break;
-        }
-    });
 
-    document.addEventListener('keyup', (event) => {
-        keyActionTaken[event.code] = false;
+        event.preventDefault();
+        // Holding a key down should not skip through images
+        if (!event.repeat) {
+            action();
+        }
     });
 }
 

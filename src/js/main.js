@@ -101,6 +101,8 @@ function createWindow() {
         {
           label: t.menuNext,
           accelerator: 'Right',
+          // Shown as a hint only; the renderer's keydown handler is the single source of these keys
+          registerAccelerator: false,
           click: () => {
             nextImage();
           }
@@ -108,6 +110,7 @@ function createWindow() {
         {
           label: t.menuPrevious,
           accelerator: 'Left',
+          registerAccelerator: false,
           click: () => {
             previousImage();
           }
@@ -115,6 +118,7 @@ function createWindow() {
         {
           label: t.menuReveal,
           accelerator: 'Space',
+          registerAccelerator: false,
           click: () => {
             revealImage();
           }
