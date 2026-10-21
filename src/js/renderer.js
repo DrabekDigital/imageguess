@@ -263,12 +263,17 @@ function createButtons() {
     clearButtons();
     document.getElementById('image-overlay').style.display = 'none';
     
-    const cols = Math.ceil(Math.sqrt(buttonCount));
-    const rows = Math.ceil(buttonCount / cols);
-    
+    const { cols, rows, lastRowCount } = getGridDimensions(buttonCount);
+
+    // When the last row is shorter, use a finer column track so its buttons
+    // can be stretched to fill the whole width and no part of the image peeks out
+    const tracks = lastRowCount === cols ? cols : cols * lastRowCount;
+    const fullSpan = tracks / cols;
+    const lastSpan = tracks / lastRowCount;
+
     const grid = document.createElement('div');
     grid.id = 'button-grid';
-    grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+    grid.style.gridTemplateColumns = `repeat(${tracks}, 1fr)`;
     grid.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
     
     const viewportWidth = window.innerWidth;
@@ -276,27 +281,21 @@ function createButtons() {
     const cellWidth = viewportWidth / cols;
     const cellHeight = viewportHeight / rows;
     const fontSize = Math.min(cellWidth, cellHeight) * 0.15;
+    const lastRowStart = (rows - 1) * cols;
     
-    const totalCells = cols * rows;
-    
-    for (let i = 0; i < totalCells; i++) {
-        if (i < buttonCount) {
-            const button = document.createElement('div');
-            button.className = 'overlay-button';
-            button.style.fontSize = `${fontSize}px`;
-            button.textContent = (i + 1).toString();
+    for (let i = 0; i < buttonCount; i++) {
+        const button = document.createElement('div');
+        button.className = 'overlay-button';
+        button.style.fontSize = `${fontSize}px`;
+        button.style.gridColumn = `span ${i < lastRowStart ? fullSpan : lastSpan}`;
+        button.textContent = (i + 1).toString();
 
-            button.addEventListener('click', () => {
-                button.style.opacity = '0';
-                button.style.pointerEvents = 'none';
-            });
+        button.addEventListener('click', () => {
+            button.style.opacity = '0';
+            button.style.pointerEvents = 'none';
+        });
 
-            grid.appendChild(button);
-        } else {
-            const spacer = document.createElement('div');
-            spacer.className = 'button-spacer';
-            grid.appendChild(spacer);
-        }
+        grid.appendChild(button);
     }
 
     document.body.appendChild(grid);
@@ -333,21 +332,53 @@ function validateButtonCount() {
         return false;
     }
     
-    const sqrt = Math.sqrt(count);
-    if (sqrt % 1 !== 0) {
-        const nearestLower = Math.floor(sqrt) ** 2;
-        const nearestHigher = Math.ceil(sqrt) ** 2;
-        validationMessage.textContent = getTranslation('enterPerfectSquare', {
-            lower: nearestLower,
-            higher: nearestHigher
-        });
-        validationMessage.style.color = 'red';
-        return false;
-    }
-    
-    validationMessage.textContent = getTranslation('perfectGrid', { size: sqrt });
+    const { cols, rows, lastRowCount } = getGridDimensions(count);
+    validationMessage.textContent = lastRowCount === cols
+        ? getTranslation('gridSize', { cols, rows })
+        : getTranslation('gridSizeUneven', { cols, rows, last: lastRowCount });
     validationMessage.style.color = 'green';
     return true;
+}
+
+// Maximum width/height ratio of a cell before a fully filled grid is rejected
+// in favour of a near-square grid with a stretched last row (e.g. 7 → 7×1)
+const MAX_CELL_ASPECT = 2;
+
+// Pick grid dimensions for the given number of buttons. Prefers a fully filled
+// grid whose cells are as close to square as possible on the current viewport.
+function getGridDimensions(count) {
+    const viewportAspect = window.innerWidth / window.innerHeight;
+    const cellSkew = (cols, rows) => {
+        const cellAspect = viewportAspect * rows / cols;
+        return Math.max(cellAspect, 1 / cellAspect);
+    };
+
+    let best = null;
+    for (let cols = 1; cols <= count; cols++) {
+        if (count % cols !== 0) continue;
+        const rows = count / cols;
+        const skew = cellSkew(cols, rows);
+        if (!best || skew < best.skew) {
+            best = { cols, rows, lastRowCount: cols, skew };
+        }
+    }
+
+    if (best.skew <= MAX_CELL_ASPECT) {
+        return best;
+    }
+
+    // No reasonable full grid (typically a prime count), so fill rows of
+    // near-square cells and let the last, shorter row stretch across.
+    // Of the two nearest column counts, pick the one with the fuller last row.
+    const idealCols = Math.sqrt(count * viewportAspect);
+    const clampCols = cols => Math.min(count, Math.max(1, cols));
+    const candidates = [clampCols(Math.floor(idealCols)), clampCols(Math.ceil(idealCols))]
+        .map(cols => {
+            const rows = Math.ceil(count / cols);
+            return { cols, rows, lastRowCount: count - (rows - 1) * cols };
+        });
+    return candidates.reduce((a, b) =>
+        b.lastRowCount / b.cols > a.lastRowCount / a.cols ? b : a);
 }
 
 function toggleFullscreen() {
