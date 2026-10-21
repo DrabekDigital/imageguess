@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, Menu, dialog } = require('electron');
+const { app, BrowserWindow, Menu, dialog } = require('electron');
 const path = require('path');
 const { translations, getPreferredLanguage } = require('./translations.js');
 const packageJson = require('../../package.json');
@@ -10,12 +10,8 @@ const isProduction = app.isPackaged || process.env.NODE_ENV === 'production';
 const APP_VERSION = packageJson.version;
 
 let mainWindow;
-let currentFolderPath = '';
 
-// Add path sanitization function
-function sanitizePath(inputPath) {
-  return path.normalize(inputPath).replace(/^(\.\.(\/|\\|$))+/, '');
-}
+const CONTENT_SECURITY_POLICY = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data:; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none';";
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -26,11 +22,12 @@ function createWindow() {
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
-      enableRemoteModule: false,
       preload: path.join(__dirname, 'preload.js'),
       webSecurity: true,
       allowRunningInsecureContent: false,
-      sandbox: true
+      sandbox: true,
+      // Disable developer tools entirely in production (covers all shortcuts and platforms)
+      devTools: !isProduction
     }
   });
 
@@ -39,29 +36,12 @@ function createWindow() {
     callback({
       responseHeaders: {
         ...details.responseHeaders,
-        'Content-Security-Policy': ["default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data:; connect-src 'self';"],
+        'Content-Security-Policy': [CONTENT_SECURITY_POLICY],
         'X-Content-Type-Options': ['nosniff'],
-        'X-Frame-Options': ['DENY'],
-        'X-XSS-Protection': ['1; mode=block']
+        'X-Frame-Options': ['DENY']
       }
     });
   });
-
-  // Disable developer tools in production
-  if (isProduction) {
-    mainWindow.webContents.on('before-input-event', (event, input) => {
-      if (input.control && input.shift && input.key.toLowerCase() === 'i') {
-        event.preventDefault();
-      }
-    });
-    
-    // Prevent opening dev tools through menu
-    mainWindow.webContents.on('before-input-event', (event, input) => {
-      if (input.control && input.shift && input.key.toLowerCase() === 'c') {
-        event.preventDefault();
-      }
-    });
-  }
 
   mainWindow.loadFile(path.join(__dirname, '../../index.html'));
 
@@ -179,16 +159,6 @@ app.on('activate', () => {
   }
 });
 
-// Update the folder selection handler
-ipcMain.handle('folder-selected-notification', async (event, data) => {
-  if (!data || typeof data.folderName !== 'string') {
-    throw new Error('Invalid folder data');
-  }
-  const sanitizedPath = sanitizePath(data.folderName);
-  currentFolderPath = sanitizedPath;
-  return { success: true };
-});
-
 function nextImage() {
   mainWindow.webContents.send('next-image');
 }
@@ -202,6 +172,5 @@ function revealImage() {
 }
 
 function closeFolder() {
-  currentFolderPath = '';
   mainWindow.webContents.send('close-folder');
 } 
