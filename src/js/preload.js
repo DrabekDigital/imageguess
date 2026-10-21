@@ -3,16 +3,6 @@ const { contextBridge, ipcRenderer } = require('electron');
 // Expose protected methods that allow the renderer process to use
 // the ipcRenderer without exposing the entire object
 contextBridge.exposeInMainWorld('electronAPI', {
-  // IPC communication with error handling
-  invoke: async (channel, data) => {
-    try {
-      return await ipcRenderer.invoke(channel, data);
-    } catch (error) {
-      console.error(`IPC Error: ${error.message}`);
-      throw error;
-    }
-  },
-  
   // Listen for events from main process with error handling
   onTriggerFolderSelection: (callback) => {
     try {

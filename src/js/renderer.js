@@ -75,7 +75,7 @@ function initializeEventListeners() {
     document.addEventListener('fullscreenchange', updateFullscreenButtonText);
 }
 
-async function handleFolderSelection(event) {
+function handleFolderSelection(event) {
     const files = Array.from(event.target.files);
     console.log('Files selected:', files.length);
     
@@ -106,20 +106,13 @@ async function handleFolderSelection(event) {
     window.currentImageFiles = imageFiles;
     window.currentImageIndex = 0;
     
+    revokeCurrentImageUrl();
+
     // Create blob URL for first image
     const firstImageUrl = URL.createObjectURL(imageFiles[0]);
     
     // Update UI
     updateUIForNewFolder(firstImageUrl, folderName, imageFiles.length);
-    
-    try {
-        await window.electronAPI.invoke('folder-selected-notification', {
-            folderName: folderName,
-            imageCount: imageFiles.length
-        });
-    } catch (error) {
-        console.error('Error notifying main process:', error);
-    }
 }
 
 function updateUIForNewFolder(firstImageUrl, folderName, totalImages) {
@@ -155,11 +148,17 @@ function handleCloseFolder() {
     clearButtons();
     window.currentImageFiles = null;
     window.currentImageIndex = 0;
-    if (window.currentImagePath && window.currentImagePath.startsWith('blob:')) {
-        URL.revokeObjectURL(window.currentImagePath);
-    }
+    revokeCurrentImageUrl();
+    document.getElementById('main-image').removeAttribute('src');
     // Reset the file input so it can be used again
     document.getElementById('folderInput').value = '';
+}
+
+function revokeCurrentImageUrl() {
+    if (currentImagePath && currentImagePath.startsWith('blob:')) {
+        URL.revokeObjectURL(currentImagePath);
+    }
+    currentImagePath = '';
 }
 
 function updateStatusBar(current, total) {
@@ -243,10 +242,7 @@ function loadCurrentImage() {
     
     const currentImage = window.currentImageFiles[window.currentImageIndex];
     
-    if (currentImagePath && currentImagePath.startsWith('blob:')) {
-        URL.revokeObjectURL(currentImagePath);
-    }
-    
+    revokeCurrentImageUrl();
     currentImagePath = URL.createObjectURL(currentImage);
     document.getElementById('main-image').src = currentImagePath;
     updateStatusBar(window.currentImageIndex + 1, window.currentImageFiles.length);
