@@ -20,7 +20,7 @@
     "build:dev:win": "NODE_ENV=development electron-builder --win",
     "build:dev:linux": "NODE_ENV=development electron-builder --linux",
     "clean": "rm -rf dist",
-    "eslint": "eslint src/**/*.js"
+    "eslint": "eslint ."
   },
   "keywords": [
     "electron",
@@ -29,10 +29,11 @@
   ],
   "license": "ISC",
   "devDependencies": {
-    "electron": "^36.0.0",
-    "electron-builder": "^24.9.1",
-    "electron-builder-sandbox-fix": "^1.1.0",
-    "eslint": "^8.56.0"
+    "@eslint/js": "^10.0.1",
+    "electron": "^44.9.3",
+    "electron-builder": "^26.15.3",
+    "eslint": "^10.13.0",
+    "globals": "^17.13.0"
   },
   "build": {
     "appId": "digital.drabek.imageguess",
@@ -46,7 +47,6 @@
     "compression": "maximum",
     "removePackageScripts": true,
     "removePackageKeywords": true,
-    "afterPack": "electron-builder-sandbox-fix",
     "mac": {
       "entitlements": "entitlements.mac.plist",
       "entitlementsInherit": "entitlements.mac.plist",
@@ -78,7 +78,9 @@
       "maintainer": "Jan Drabek <notify@drabek.digital>",
       "category": "Game",
       "desktop": {
-        "MimeType": "x-scheme-handler/imageguess"
+        "entry": {
+          "MimeType": "x-scheme-handler/imageguess"
+        }
       },
       "target": [
         {
