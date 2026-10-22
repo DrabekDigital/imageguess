@@ -20,12 +20,10 @@ Download the latest release from the [Releases page](https://github.com/DrabekDi
 
 ## Running on Linux
 
-On Linux you will need to install FUSE 2, this might be under `fuse` or `libfuse2t64`... 
-
-Additionally you might need the `zlib1g-dev` package:
+The AppImage uses a static runtime, so FUSE 2 or zlib packages are not required. Make it executable and run it (use the `-arm64` file on ARM machines):
 
 ```bash
-sudo apt install zlib1g-dev
+chmod +x ImageGuess-*.AppImage && ./ImageGuess-*.AppImage
 ```
 
-If you encounter with `The SUID sandbox helper binary was found, but is not configured correctly. Rather than run without sandboxing I'm aborting now.` rerun with `--no-sandbox`
+If you encounter `The SUID sandbox helper binary was found, but is not configured correctly. Rather than run without sandboxing I'm aborting now.` rerun with `--no-sandbox`
