@@ -1,6 +1,6 @@
 {
   "name": "imageguess",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "An image guessing game with overlay buttons",
   "main": "src/js/main.js",
   "homepage": "https://github.com/DrabekDigital/imageguess",
@@ -12,12 +12,12 @@
     "start": "electron .",
     "dev": "NODE_ENV=development electron .",
     "start:prod": "NODE_ENV=production electron .",
-    "build": "NODE_ENV=production electron-builder",
+    "build": "ELECTRON_BUILDER_7Z_FILTER=BCJ2 NODE_ENV=production electron-builder",
     "build:mac": "NODE_ENV=production electron-builder --mac",
-    "build:win": "NODE_ENV=production electron-builder --win",
+    "build:win": "ELECTRON_BUILDER_7Z_FILTER=BCJ2 NODE_ENV=production electron-builder --win",
     "build:linux": "NODE_ENV=production electron-builder --linux",
-    "build:dev": "NODE_ENV=development electron-builder",
-    "build:dev:win": "NODE_ENV=development electron-builder --win",
+    "build:dev": "ELECTRON_BUILDER_7Z_FILTER=BCJ2 NODE_ENV=development electron-builder",
+    "build:dev:win": "ELECTRON_BUILDER_7Z_FILTER=BCJ2 NODE_ENV=development electron-builder --win",
     "build:dev:linux": "NODE_ENV=development electron-builder --linux",
     "clean": "rm -rf dist",
     "eslint": "eslint ."
@@ -47,6 +47,9 @@
     "compression": "maximum",
     "removePackageScripts": true,
     "removePackageKeywords": true,
+    "toolsets": {
+      "appimage": "1.0.3"
+    },
     "mac": {
       "entitlements": "entitlements.mac.plist",
       "entitlementsInherit": "entitlements.mac.plist",
